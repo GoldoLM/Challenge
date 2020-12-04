@@ -5,13 +5,6 @@ import zlib
 import collections
 import numpy as np
 
-#omportations necesaires pour l'entropie sur chque data
-#import scipy.stats
-#import pandas
-
-#importation necessaire pounr l'entropie de l'image
-#import skimage.measure
-
 #script si pas de prblème avec le fichier
 try :
     #Mettre en argument le fichier à analyser
@@ -31,18 +24,13 @@ try :
             chunk_data = f.read(chunk_length)
             chunk_crc = struct.unpack('>I', f.read(4))
             chunk_calculate_crc = zlib.crc32(chunk_data, zlib.crc32(struct.pack('>4s', chunk_type)))
+
+            #calcule du l'entropie
             C = collections.Counter(chunks)
             counts = np.array(list(C.values()),dtype=float)
-            #counts  = np.array(C.values(),dtype=float)
             prob    = counts/counts.sum()
             chunk_entropy = (-prob*np.log2(prob)).sum()
-            #entropie de l'image
-            #chunk_entro = skimage.measure.shannon_entropy(name)
-
-            #entropie de chaque data
-            #chunk_entro = 0
-            #p_data = chunk_data.value_counts()      
-            #chunk_entro = scipy.stats.entropy(p_data)  
+          
 
             return chunk_type, chunk_data, chunk_length, chunk_crc, chunk_calculate_crc, chunk_entropy
 
@@ -54,9 +42,6 @@ try :
             if chunk_type == b'IEND':
                 break
 
-  
-
-
         #affichage des chunks sur console
         print('')
         print("le type, la taille, le CRC, le CRC claculé, l'entropie :")
@@ -64,6 +49,7 @@ try :
         for chunk_type in  chunks :
             print(chunk_type)
         print('')
+        
     #fermeture du fichier 
     finally :
         f.close()
