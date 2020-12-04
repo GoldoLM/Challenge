@@ -2,6 +2,8 @@ import struct
 import math
 import sys
 import zlib
+import collections
+import numpy as np
 
 #omportations necesaires pour l'entropie sur chque data
 #import scipy.stats
@@ -29,7 +31,11 @@ try :
             chunk_data = f.read(chunk_length)
             chunk_crc = struct.unpack('>I', f.read(4))
             chunk_calculate_crc = zlib.crc32(chunk_data, zlib.crc32(struct.pack('>4s', chunk_type)))
-
+            C = collections.Counter(chunks)
+            counts = np.array(list(C.values()),dtype=float)
+            #counts  = np.array(C.values(),dtype=float)
+            prob    = counts/counts.sum()
+            chunk_entropy = (-prob*np.log2(prob)).sum()
             #entropie de l'image
             #chunk_entro = skimage.measure.shannon_entropy(name)
 
@@ -38,15 +44,18 @@ try :
             #p_data = chunk_data.value_counts()      
             #chunk_entro = scipy.stats.entropy(p_data)  
 
-            return chunk_type, chunk_data, chunk_length, chunk_crc, chunk_calculate_crc
+            return chunk_type, chunk_data, chunk_length, chunk_crc, chunk_calculate_crc, chunk_entropy
 
         #mise des informations dans un tableau de chunks
         chunks = []
         while True:
-            chunk_type, chunk_data, chunk_length, chunk_crc, chunk_calculate_crc= read_chunk(f)
-            chunks.append((chunk_type, chunk_length, chunk_crc,  chunk_calculate_crc)) 
+            chunk_type, chunk_data, chunk_length, chunk_crc, chunk_calculate_crc, chunk_entropy= read_chunk(f)
+            chunks.append((chunk_type, chunk_length, chunk_crc,  chunk_calculate_crc, chunk_entropy)) 
             if chunk_type == b'IEND':
                 break
+
+  
+
 
         #affichage des chunks sur console
         print('')
